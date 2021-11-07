@@ -20,16 +20,20 @@ int a_max = 580;
 int c_max = 580;
 int b_max = 580;
 //Variables
-int alpha_speed = 300;
-int beta_speed = 300;
-int charlie_speed = 300;
-int alpha_acc = 500;
-int beta_acc = 500;
+int alpha_speed = 150;
+int beta_speed = 150;
+int charlie_speed = 150;
+int alpha_acc = 600;
+int beta_acc = 600;
 int charlie_acc = 500;
 
 int a = 0;
 int b = 0;
 int c = 0;
+
+int A_avg = 0;
+int B_avg = 0;
+int C_avg = 0;
 //serial variables
 String s_input = "";
 bool input_complete = false;
@@ -104,25 +108,33 @@ void loop()
     alpha.moveTo(a);
     beta.moveTo(b);
     charlie.moveTo(c);
-//    Serial.print("Current Position :");
-//    Serial.print(alpha.currentPosition());
-//    Serial.print(beta.currentPosition());
-//    Serial.println(charlie.currentPosition());
-//    Serial.print("about to run to :");
-//    Serial.print(a);
-//    Serial.print(b);
-//    Serial.println(c);
+    //    Serial.print("Current Position :");
+    //    Serial.print(alpha.currentPosition());
+    //    Serial.print(beta.currentPosition());
+    //    Serial.println(charlie.currentPosition());
+    //    Serial.print("about to run to :");
+    //    Serial.print(a);
+    //    Serial.print(b);
+    //    Serial.println(c);
   }
 
   //run motors and check for more input
-
+  int n = 0;
   while ((alpha.isRunning() || beta.isRunning() || charlie.isRunning()) && !Serial.available())
   {
-//    Serial.println("running");
+    //    Serial.println("running");
     alpha.run();
     beta.run();
     charlie.run();
+    n = n + 1;
+    A_avg = analogRead(A7) + A_avg;
+    B_avg = analogRead(A6) + B_avg;
+    C_avg = analogRead(A5) + C_avg;
   }//while
+
+  A_avg = A_avg/n;
+  B_avg = B_avg/n;
+  C_avg = C_avg/n;
   //  if (a > 0) {
   //    Serial.println(a);
   //    a = 0;
