@@ -1,6 +1,6 @@
-unsigned long interval = 5;
+unsigned long interval = 15;
 void setup() {
-  // put your setup code here, to run once:
+ // put your setup code here, to run once:
   Serial.begin(9600);
   pinMode(A7, INPUT);
   pinMode(A6, INPUT);
@@ -27,14 +27,14 @@ void loop() {
   b = b / n;
   c = c / n;
   previousMillis = currentMillis;
-  Serial.print("number of samples= ");
-  Serial.println(n);
-  Serial.print("input left= ");
-  Serial.println(b);
-  Serial.print("input right= ");
-  Serial.println(c);
-  Serial.print("outpute= ");
+//  Serial.print("   number of samples= ");
+//  Serial.print(n);
+  Serial.print("      A= ");
+  Serial.print(b);
+  Serial.print("      B= ");
+  Serial.print(c);
+  Serial.print("      C= ");
   Serial.println(a);
-  delay(1000);
+  delay(10);
 
 }

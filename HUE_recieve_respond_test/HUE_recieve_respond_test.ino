@@ -69,7 +69,7 @@ void setup()
   //-----------------------board set up
   Serial.begin(9600);
   Serial.setTimeout(100);
-  s_input.reserve(200);
+  s_input.reserve(9);
 
   pinMode(2, OUTPUT);
   pinMode(3, OUTPUT);
