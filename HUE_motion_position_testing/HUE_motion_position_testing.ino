@@ -124,21 +124,21 @@ void loop()
   b = (b / n) / 2;
   c = (c / n) / 2;
   previousMillis = currentMillis;
-  Serial.print("      A= ");
-  Serial.print(a);
-  Serial.print("      B= ");
-  Serial.print(b);
-  Serial.print("      C= ");
-  Serial.println(c);
+//  Serial.print("      A= ");
+//  Serial.print(a);
+//  Serial.print("      B= ");
+//  Serial.print(b);
+//  Serial.print("      C= ");
+//  Serial.println(c);
   //delay(1000);
   if (  (a < a_max) && (b < b_max) && (c < c_max))
   {
-    Serial.print("      a= ");
-    Serial.print(alpha.currentPosition());
-    Serial.print("      b= ");
-    Serial.print(beta.currentPosition());
-    Serial.print("      c= ");
-    Serial.println(charlie.currentPosition());
+//    Serial.print("      a= ");
+//    Serial.print(alpha.currentPosition());
+//    Serial.print("      b= ");
+//    Serial.print(beta.currentPosition());
+//    Serial.print("      c= ");
+//    Serial.println(charlie.currentPosition());
     //delay(1000);
     if (abs(a - alpha.currentPosition()) > 1 || abs(b - beta.currentPosition()) > 1 ||  abs(c - charlie.currentPosition()) > 1)
     {
@@ -157,7 +157,7 @@ void loop()
         charlie.run();
         //Serial.print(alpha.isRunning() || beta.isRunning() || charlie.isRunning());
         //delay(1000);
-        Serial.println();
+//        Serial.println();
 
         //        Serial.print("Current Position :");
         //        Serial.print(alpha.currentPosition());
