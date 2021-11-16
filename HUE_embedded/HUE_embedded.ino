@@ -36,23 +36,23 @@ const int Q3_max = 3.1415 * p;
 const int Q3_min = 3.1415 * p;
 
 //constants for voltage2angle
-const unsigned int OG = 0.0800 * p; //m*p
-const unsigned int OG2 = pow(OG,2);
-const unsigned int L1 = 0.255 * p; //m
-const unsigned int L12 = L1*L1;
+const  int OG = 0.0800 * p; //m*p
+const int OG2 = pow(OG,2);
+const  int L1 = 0.255 * p; //m
+const  int L12 = L1*L1;
 const  int CL1 = 0.14142136 * p; //m
 const  int CL12 = pow(CL1,2);
-const unsigned int L1m = 0.1100 * p; //m
-const unsigned int L1m2 = L1m*L1m;
-const unsigned int L2 = 0.2600 * p; //m
-const unsigned int L22 = L2*L2;
-const unsigned int CL2 = 0.28044607 * p; //m
-const unsigned int CL22 = CL2*CL2;
-const unsigned int L2e = 0.0800 * p; //m
-const unsigned int L2e2 = L2e*L2e;
-const unsigned int OL = 0.109337002 * p; //m
-const unsigned int OL2 = OL*OL;
-const unsigned int OX = 0.1055 * p; //m
+const  int L1m = 0.1100 * p; //m
+const  int L1m2 = L1m*L1m;
+const  int L2 = 0.2600 * p; //m
+const int L22 = L2*L2;
+const  int CL2 = 0.28044607 * p; //m
+const  int CL22 = CL2*CL2;
+const int L2e = 0.0800 * p; //m
+const  int L2e2 = L2e*L2e;
+const  int OL = 0.109337002 * p; //m
+const  int OL2 = OL*OL;
+const  int OX = 0.1055 * p; //m
 
 //Variables
 int alpha_speed = 150;
@@ -95,35 +95,28 @@ AccelStepper charlie(1, MOTOR_Z_STEP_PIN, MOTOR_Z_DIR_PIN);
 int voltage2angle(int qin1, int qin2, int qin3)
 {
 
-  //  Serial.println(OG);
-  //  Serial.println(L1);
-  //  Serial.println(L2);
-
-  qin1 = (2410 - qin1 * (2410 - 260) / 1024);
-  qin2 =  (350 + qin2 * (2630 - 350) / 1024);
-
   //convert to decimal precision int
-  unsigned int Q1 = qin1;
-  unsigned int Q2 = qin2;
+  double Q1 = 2.41 - qin1 * 0.0020996;
+  double Q2 = 0.35 + qin2 * 0.002226;
 
 
   double now = micros();
-  //stepper 1
-  long O_L1m = sqrt(L1m2 + OL2 - 2 * L1m * OL * cos(double(PI * p  - Q1) / p));
-  //    int q1_beta =  acos( (pow(OG, 2)  - pow(CL1, 2) + pow(O_L1m, 2)) / (2 * OG * O_L1m)) * p;
-  //    int q1_alpha = acos( (pow(OL, 2)  - pow(L1m, 2) + pow(O_L1m, 2)) / (2 * OL * O_L1m )) * p;
-  long qS1 = (acos((OG2  - CL12 + O_L1m*O_L1m) / (2 * OG * O_L1m))    +     acos(long(OL2  - L1m2 + O_L1m*O_L1m) / long(2 * OL * O_L1m ))) * p; //Angle of OG1 referenced to the line between center of planetary gear and pivot of L1
-Serial.println();
-Serial.println((OG2  - CL12 + O_L1m*O_L1m) / (2 * OG * O_L1m));
-Serial.println(CL12);
-  //stepper 2
-  long R2 = sqrt(pow(L1, 2) + pow(L2e, 2) - 2 * L1 * L2e * cos(PI - double(Q2) / p));
-  int q_L1_R2 = acos((-L2e2 + R2*R2 + L12) / (2 * R2 * L1)) * p;
-  long  R1 =  sqrt(OL2 + R2*R2  - 2 * OL * R2 * cos(PI - double(Q1) / p - double(q_L1_R2) / p));
-  //    int q2_beta =  acos((pow(OG, 2) - pow(CL2, 2) + pow(R1, 2)) / (2 * OG * R1)) * p;
-  //    int q2_alpha =  acos((pow(OL, 2) - pow(R2, 2) + pow(R1, 2)) / (2 * OL * R1)) * p;
-  long qS2 = (acos((OG2 - CL22 + R1*R1) / (2 * OG * R1))    +    acos((OL2 - R2*R2 + R1*R1) / (2 * OL * R1))) * p; //Angle of OG2 referenced to the line between center of planetary gear and pivot of L1
+//stepper 1
+  double q1_theta = PI   - Q1;
+  long O_L1m = sqrt(pow(L1m, 2) + pow(OL, 2) - 2 * L1m * OL * cos(q1_theta));
+  double q1_beta =  acos(( pow(OG, 2)  - pow(CL1, 2) + pow(O_L1m, 2)) / (2 * OG * O_L1m));
+  double q1_alpha = acos( (pow(OL, 2)  - pow(L1m, 2) + pow(O_L1m, 2)) / (2 * OL * O_L1m ));
+  double qS1 = (q1_beta + q1_alpha); //Angle of OG1 referenced to the line between center of planetary gear and pivot of L1
 
+  //stepper 2
+  double q2_theta = PI-Q2;
+  long R2 = sqrt(pow(L1, 2) + pow(L2e, 2) - 2 * long(L1) * long(L2e) * cos(q2_theta));
+  double q_L1_R2 = acos((-pow(L2e, 2)  + pow(R2, 2) + pow(L1, 2)) / (2 * R2 * L1));
+  double q2_gamma = PI - Q1 - q_L1_R2;
+  long  R1 =  sqrt(pow(OL, 2) + pow(R2, 2) - 2 * long(OL) * long(R2) * cos(q2_gamma));
+  double q2_beta =  acos((pow(OG, 2) - pow(CL2, 2) + pow(R1, 2)) / (2 * OG * R1));
+  double q2_alpha =  acos((pow(OL, 2) - pow(R2, 2) + pow(R1, 2)) / (2 * OL * R1));
+  double qS2 = q2_alpha + q2_beta;//Angle of OG2 referenced to the line between center of planetary gear and pivot of L1
 
   S1 = (3.442-qS1)/(2*PI)*4*200;
   S2 = (4.114-qS2)/(2*PI)*4*200;
@@ -132,9 +125,9 @@ Serial.println(CL12);
 
 
   Serial.print(" Q1= ");
-  Serial.print(double(Q1) / p);
+  Serial.print(double(Q1));
   Serial.print("      Q2= ");
-  Serial.println(double(Q2) / p);
+  Serial.println(double(Q2));
   Serial.print(" qS1= ");
   Serial.print(qS1);
   Serial.print("          qS2 = ");
@@ -162,7 +155,17 @@ bool checksensors ()
   {
     return true;
   }
+  return false;
 }//checksensors
+
+bool checkangles()
+{
+  if (  Q1 <= Q1_max && Q2 <= Q2_max && Q3 <= Q3_max && Q1 >= Q1_min && Q2 >= Q2_min && Q3 >= Q3_max)
+  {
+    return true;
+  }
+  return false;
+}
 
 //-------------------------------------------------------------------------------------------------------------------------start
 void setup()
@@ -232,7 +235,7 @@ void loop()
     } // if (s_input)
   }   //if
 
-  if (  Q1 <= Q1_max && Q2 <= Q2_max && Q3 <= Q3_max && Q1 >= Q1_min && Q2 >= Q2_min && Q3 >= Q3_max)
+  if ( checkangles())
   {
     alpha.moveTo(S1);
     beta.moveTo(S2);

@@ -49,7 +49,7 @@ int voltage_convert(int qin1, int qin2) {
   Serial.print("      Q2= ");
   Serial.println(Q2);
 
-  double now = micros();
+  int now = micros();
 
 
   //stepper 1
@@ -65,10 +65,12 @@ int voltage_convert(int qin1, int qin2) {
 
   //stepper 2
   double q2_theta = PI-Q2;
-  long R2 = sqrt(pow(L1, 2) + pow(L2e, 2) - 2 * long(L1) * long(L2e) * cos(q2_theta));
+  long tmp =2 * L1 * L2e * cos(q2_theta);
+  long R2 = sqrt(pow(L1, 2) + pow(L2e, 2) - 2 * L1 * L2e * cos(q2_theta));
+  Serial.println(2 * L1 * L2e );
   double q_L1_R2 = acos((-pow(L2e, 2)  + pow(R2, 2) + pow(L1, 2)) / (2 * R2 * L1));
   double q2_gamma = PI - Q1 - q_L1_R2;
-  long  R1 =  sqrt(pow(OL, 2) + pow(R2, 2) - 2 * long(OL) * long(R2) * cos(q2_gamma));
+  long  R1 =  sqrt(pow(OL, 2) + pow(R2, 2) - 2 * OL * R2 * cos(q2_gamma));
   double q2_beta =  acos((pow(OG, 2) - pow(CL2, 2) + pow(R1, 2)) / (2 * OG * R1));
   double q2_alpha =  acos((pow(OL, 2) - pow(R2, 2) + pow(R1, 2)) / (2 * OL * R1));
   double qS2 = q2_alpha + q2_beta;//Angle of OG2 referenced to the line between center of planetary gear and pivot of L1
@@ -93,11 +95,11 @@ int voltage_convert(int qin1, int qin2) {
   Serial.println();
 
 
-    Serial.println();
-  
-    Serial.print("            time it took = ");
-    Serial.println(then - now);
-    Serial.println();
+  //  Serial.println();
+  //
+  //  Serial.print("            time it took = ");
+  //  Serial.println(then - now);
+  //  Serial.println();
 }
 
 
