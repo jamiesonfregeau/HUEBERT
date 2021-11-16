@@ -59,7 +59,7 @@ int voltage_convert(double qin1, double qin2) {
   //stepper 2
   long R2 = sqrt(pow(L1, 2) + pow(L2e, 2) - 2 * L1 * L2e * cos(PI - double(Q2) / p));
   int q_L1_R2 = acos((-pow(L2e, 2)  + pow(R2, 2) + pow(L1, 2)) / (2 * R2 * L1)) * p;
-  unsigned int  R1 =  sqrt(pow(OL, 2) + pow(R2, 2) - 2 * OL * R2 * cos(PI - double(Q1) / p - double(q_L1_R2) / p));
+  long  R1 =  sqrt(pow(OL, 2) + pow(R2, 2) - 2 * OL * R2 * cos(PI - double(Q1) / p - double(q_L1_R2) / p));
   int q2_beta =  acos((pow(OG, 2) - pow(CL2, 2) + pow(R1, 2)) / (2 * OG * R1)) * p;
   int q2_alpha =  acos((pow(OL, 2) - pow(R2, 2) + pow(R1, 2)) / (2 * OL * R1)) * p;
   int qS2 = q2_alpha + q2_beta;//Angle of OG2 referenced to the line between center of planetary gear and pivot of L1
