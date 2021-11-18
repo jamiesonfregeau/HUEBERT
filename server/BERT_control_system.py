@@ -1,4 +1,4 @@
-""" BERT's Control system
+""" BERT's control system
 """
 
 # Libraries
@@ -7,8 +7,10 @@ from read_control_data import ArduinoPy
 
 # --------------------------------------------------------------------------------------
 
-# initialize objects
+# Initialize bert client to communicate with server
 bert = BertClient()
+
+# Initialize ardipy to read ad verify serial positional control data from BERT
 ardipy = ArduinoPy()
 
 
@@ -16,7 +18,10 @@ def activate_bert():
     """Activate video and data transmission between BERT and server"""
 
     # Connect to server
-    bert.connect()
+    if bert.connect():
+        print("Successfully connected to server!")
+    else:
+        raise Exception("Fatal Error: Could not establish connection with server.")
 
     # Read control data, if verified - send to server
     while True:

@@ -1,7 +1,21 @@
+""" A class to setup a local client for BERT to communicate with the server
+
+TODO add security best practices into server connection 
+    1. OpenSSL to encrypt server-client connection
+    2. Whitelist BERT's ip address so it is the only allowed connection
+    3. Implement RSA key requirement so only a user with the correct private key
+       can connect. 
+"""
+
+# Libraries
 import socket
+
+# --------------------------------------------------------------------------------------
 
 
 class BertClient:
+    """Connect, Disconnect and communicate with the raspberry pi server"""
+
     def __init__(self, host="192.168.1.147", port=1234, retry_attempts=10):
         self.host = host
         self.port = port
