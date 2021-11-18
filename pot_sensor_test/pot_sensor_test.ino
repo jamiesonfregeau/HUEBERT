@@ -16,7 +16,6 @@ void loop() {
   unsigned long int b = 0;
   unsigned long int c = 0;
   while ((currentMillis - previousMillis) < interval) {
-    a = analogRead(A7) + a;
     b = analogRead(A6) + b;
     c = analogRead(A5) + c;
 

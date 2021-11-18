@@ -97,9 +97,9 @@ AccelStepper charlie(1, MOTOR_Z_STEP_PIN, MOTOR_Z_DIR_PIN);
 //-----------------------------------------------------
 int voltage2angle(int qin1, int qin2, int qin3)
 {
-  //Serial.println("converting voltage value to step angle...");
+  Serial.println("converting voltage value to step angle...");
   //convert to decimal precision int
-  double Q1 = 0.26 + qin1 * 0.0020996;
+  double Q1 = 2.41 - qin1 * 0.0020996;
   double Q2 = 0.35 + qin2 * 0.002226;
   double Q3 = -PI + qin3 * 2 * PI / 1024;
 
@@ -142,7 +142,7 @@ int voltage2angle(int qin1, int qin2, int qin3)
   //  Serial.print("            time it took = ");
   //  Serial.println(then - now);
   //  Serial.println();
-  //Serial.println("conversion complete...");
+  Serial.println("conversion complete...");
   return 1;
 }//voltage2angle
 
@@ -150,10 +150,10 @@ int voltage2angle(int qin1, int qin2, int qin3)
 //-----------------------------------------------------
 bool checksensors ()
 {
-  //Serial.print("checking analog sensors...");
-  //  rA = analogRead(prA);
-  //  rB = analogRead(prB);
-  //  rC = analogRead(prC);
+  Serial.print("checking analog sensors...");
+  rA = analogRead(prA);
+  rB = analogRead(prB);
+  rC = analogRead(prC);
   if (  (rA < rA_max) && (rB < rB_max) && (rC < rC_max) && (rA > rA_min) && (rB > rB_min) && (rC > rC_min))
   {
     //Serial.println("Sensors indicate HUE is ready to move...");
@@ -161,8 +161,8 @@ bool checksensors ()
 
   }
   //Serial.println((rA > rA_min) && (rB > rB_min) && (rC > rC_min));
-  //delay(1000);
-  //Serial.println("WARNING: HUE OUTSIDE MECHANICAL LIMITS....");
+  delay(1000);
+  Serial.println("WARNING: HUE OUTSIDE MECHANICAL LIMITS....");
   return false;
 }//checksensors
 
@@ -247,13 +247,13 @@ void setup()
 void loop()
 {
   bool howcopy = 0;
-  //displaysensordata();
-  delay(100);
+  displaysensordata();
+  delay(500);
   //read Serial Data if available in a string
   if (Serial.available())
   {
-    //Serial.println("reading serial...");
-    //delay(1000);
+    Serial.println("reading serial...");
+    delay(1000);
     s_input = Serial.readStringUntil('\n');
 
     //parse the input string if it has content
@@ -269,29 +269,29 @@ void loop()
     } // if (s_input)
   }   //if
 
-  if (howcopy) // ( checksensors() && howcopy)
+  if ( checksensors() && howcopy)
   {
-  //  Serial.println("Setting destination...");
-    //delay(1000);
+    Serial.println("Setting destination...");
+    delay(1000);
     alpha.moveTo(S1);
     beta.moveTo(S2);
     charlie.moveTo(S3);
-    //
-    //    Serial.print("Current Position :");
-    //    Serial.print("   ");
-    //    Serial.print(alpha.currentPosition());
-    //    Serial.print("   ");
-    //    Serial.print(beta.currentPosition());
-    //    Serial.print("   ");
-    //    Serial.println(charlie.currentPosition());
-    //    Serial.print("about to run to :");
-    //    Serial.print("   ");
-    //    Serial.print(S1);
-    //    Serial.print("   ");
-    //    Serial.print(S2);
-    //    Serial.print("   ");
-    // Serial.println(S3);
-    //delay(1000);
+
+    Serial.print("Current Position :");
+    Serial.print("   ");
+    Serial.print(alpha.currentPosition());
+    Serial.print("   ");
+    Serial.print(beta.currentPosition());
+    Serial.print("   ");
+    Serial.println(charlie.currentPosition());
+    Serial.print("about to run to :");
+    Serial.print("   ");
+    Serial.print(S1);
+    Serial.print("   ");
+    Serial.print(S2);
+    Serial.print("   ");
+    Serial.println(S3);
+    delay(1000);
   }//if within limits
   else
   {
@@ -299,14 +299,15 @@ void loop()
   }
   //run motors and check for more input
 
-  while ((alpha.isRunning() || beta.isRunning() || charlie.isRunning()) )//&& !Serial.available())
+  int n = 0;
+  while ((alpha.isRunning() || beta.isRunning() || charlie.isRunning()) && !Serial.available())
   {
     //    Serial.println("running");
-   // Serial.println("...stepping...");
+    //Serial.print("...stepping...");
     alpha.run();
     beta.run();
     charlie.run();
-
+    
   }//while
 
 } //loop

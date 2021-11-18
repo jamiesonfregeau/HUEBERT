@@ -27,7 +27,7 @@ OY = 28.83664 /1000; %m
 qO=0.26681587; %rads
 %modify values based on arm Dimensions
 
-Q1 = 2.41 - Q1*(2.41-0.26)/1024 ;
+Q1 =0.26 + Q1*(2.41-0.26)/1024 ;
 Q2 = 0.35+ Q2*(2.63-0.35)/1024;
 %Finding OG2 position
 
