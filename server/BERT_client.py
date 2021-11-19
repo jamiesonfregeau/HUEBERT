@@ -20,7 +20,7 @@ class BertClient:
         self.host = host
         self.port = port
         self.retry_attempts = retry_attempts
-        self.socket = None
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def connect(self):
         """Attempt connecting to the server retry_attempts number of times
@@ -30,7 +30,6 @@ class BertClient:
         """
         for attempt in range(self.retry_attempts):
             try:
-                self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.socket.connect((self.host, self.port))
                 return True
             except Exception as error:
