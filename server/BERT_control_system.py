@@ -3,7 +3,7 @@
 
 # Libraries
 from BERT_client import BertClient
-from read_control_data import ArduinoPy
+from arduino_serial import ArduinoPy
 
 # --------------------------------------------------------------------------------------
 
