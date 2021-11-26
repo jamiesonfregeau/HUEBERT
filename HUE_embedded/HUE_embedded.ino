@@ -10,42 +10,46 @@
 
 //These pins are connected from the arduino to the motor drivers.
 #define MOTOR_X_ENABLE_PIN 8
-#define MOTOR_X_STEP_PIN 2
-#define MOTOR_X_DIR_PIN 3
+#define MOTOR_X_STEP_PIN 3
+#define MOTOR_X_DIR_PIN 2
 
 #define MOTOR_Y_ENABLE_PIN 8
-#define MOTOR_Y_STEP_PIN 4
-#define MOTOR_Y_DIR_PIN 5
+#define MOTOR_Y_STEP_PIN 5
+#define MOTOR_Y_DIR_PIN 4
 
 #define MOTOR_Z_ENABLE_PIN 8
-#define MOTOR_Z_STEP_PIN 6
-#define MOTOR_Z_DIR_PIN 7
+#define MOTOR_Z_STEP_PIN 7
+#define MOTOR_Z_DIR_PIN 6
 
 //precision of mathmatics used in the voltage2angle function.
 #define p 1000
 
 //These constants determine the pins to which the positional sensors must be connected.
-#define prA A7
+#define prA A5
 #define prB A6
-#define prC A5
+#define prC A7
 
 //Constants which define the range of motion of HUE and BERT.
 //These define the maximum analog voltage reading of the arduino.
-const int rA_max = 1019;
-const int rA_min = 5;
-const int rB_max = 1019;
-const int rB_min = 5;
-const int rC_max = 1019;
+//THESE ARE FOR BERT
+const int rA_max = 1023;
+const int rA_min = 0;
+const int rB_max = 780;
+const int rB_min = 0;
+const int rC_max = 1023;
 const int rC_min = 0;
 
 // These define the maximum relative angles which the HUE frame can take (in radians)
 //  multiplied by the precision factor and stored as integers.
-const int Q1_max = 2.41 * p;
-const int Q1_min = 0.26 * p;
-const int Q2_max = 2.63 * p;
-const int Q2_min = 0.35 * p;
-const int Q3_max = PI * p;
-const int Q3_min = -PI * p;
+const double Q1_max = 2.41 ;
+const double Q1_min = 0.33 ;
+const double Q2_max = PI ;
+const double Q2_min = 0.83 ;
+const double Q3_max = PI ;
+const double Q3_min = -PI ;
+const double offset1 = 0.33272;
+const double offset2 = 1.84818;
+const double offset3 = 0.88631;
 
 
 // Constants for voltage2angle.
@@ -103,11 +107,14 @@ int voltage2angle(int a_in, int b_in, int c_in)
   //Serial.println("converting voltage value to step angle...");
 
   //Convert the analog reading into the cooresponding arm angle in radians.
-  double Q1 = 0.26 + a_in * 0.0020996;  //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE*********
-  double Q2 = 0.35 + b_in * 0.002226;  //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE***********
+  double Q1 = Q1_min + a_in * (Q1_max - Q1_min) / (rA_max - rA_min); //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE*********s
+  double Q2 = PI + (Q2_min + b_in * (Q2_max - Q2_min) / (rB_max - rB_min)) - Q1 - offset3 - offset2; //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE***********
   double Q3 = -PI + c_in * 2 * PI / 1024; //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE********
   //check if the desired value is valid
-
+//   Serial.print(" Q1= ");
+//      Serial.print(double(Q1));
+//      Serial.print("      Q2= ");
+//      Serial.println(double(Q2));;;
 
   if (!checkangles(Q1, Q2, Q3))
   {
@@ -140,7 +147,7 @@ int voltage2angle(int a_in, int b_in, int c_in)
   //Convert motor arm angle to steps based on a precision of 200 steps per rotation
   S1 = (3.442 - qS1) / (2 * PI) * 4 * 200; //CHANGE THIS IF alpha STEPPER CHANGES*******
   S2 = (4.114 - qS2) / (2 * PI) * 4 * 200; //CHANGE THIS IF beta STEPPER CHANGES********
-  S3 = (Q3 * 13) * 200 / (2 * PI);// CHANGE THIS IF charlie STEPPER CHANGES*************
+  S3 = (Q3 * 13) * 200 / (2 * PI);// CHANGE THIS IF charlie STEPPER CHANGES*************[
 
 
   // double then = micros();//Uncomment to end timing function
@@ -150,14 +157,14 @@ int voltage2angle(int a_in, int b_in, int c_in)
   //  Serial.println();
 
   //Uncomment below to send converted values through serial connection.
-  //  Serial.print(" Q1= ");
-  //  Serial.print(double(Q1));
-  //  Serial.print("      Q2= ");
-  //  Serial.println(double(Q2));
-  //  Serial.print(" qS1= ");
-  //  Serial.print(qS1);
-  //  Serial.print("          qS2 = ");
-  //  Serial.println(qS2);
+  //    Serial.print(" Q1= ");
+  //    Serial.print(double(Q1));
+  //    Serial.print("      Q2= ");
+  //    Serial.println(double(Q2));
+  //    Serial.print(" qS1= ");
+  //    Serial.print(qS1);
+  //    Serial.print("          qS2 = ");
+  //    Serial.println(qS2);
   //  Serial.println();
   //  Serial.println();
 
@@ -183,7 +190,7 @@ bool checksensors ()
   int rB = analogRead(prB);
   int rC = analogRead(prC);
 
-  if (  (rA < rA_max) && (rB < rB_max) && (rC < rC_max) && (rA > rA_min) && (rB > rB_min) && (rC > rC_min))
+  if (  (rA < rA_max) && (rB < rB_max) && (rC < rC_max) && (rA >= rA_min) && (rB >= rB_min) && (rC >= rC_min))
   {
     //Serial.println("Sensors indicate HUE is ready to move...");
     return true;
@@ -198,7 +205,7 @@ bool checksensors ()
 //----------------------------
 
 
-bool checkangles(int Q1, int Q2, int Q3)
+bool checkangles(double Q1, double Q2, double Q3)
 {
   //This function checks if the input angle is within the defined limits of HUE's range
 
@@ -213,6 +220,22 @@ bool checkangles(int Q1, int Q2, int Q3)
     Serial.println("WARNING: HUE CANNOT MOVE HERE....");
     return false;
   }
+}
+
+int homeHUE ()
+{
+  // displaysensordata();
+  // voltage2angle(analogRead(prA),analogRead(prB), 512);
+  alpha.setCurrentPosition(14);
+  beta.setCurrentPosition(3);
+  charlie.setCurrentPosition(512);
+  //    Serial.print("Current Position :");
+  //        Serial.print("   ");
+  //        Serial.print(alpha.currentPosition());
+  //        Serial.print("   ");
+  //        Serial.print(beta.currentPosition());
+  //        Serial.print("   ");
+  //        Serial.println(charlie.currentPosition());
 }
 
 //------------------------------------------
@@ -289,9 +312,7 @@ void setup()
 
   //home motors
   //Set motors to home position: Make sure HUE starts from this defined position
-  alpha.setCurrentPosition(3);
-  beta.setCurrentPosition(14);
-  charlie.setCurrentPosition(0);
+  homeHUE();
   Serial.write("ready to receive instructions");
 
   //-----------------------------
@@ -335,27 +356,28 @@ void loop()
   if (howcopy) // ( checksensors() && howcopy)
   {
     //if the positional data was valid and converted to step value successfully set targets for steppers.
-    
+
     //  Serial.println("Setting destination...");
     //delay(1000);
     alpha.moveTo(S1);
     beta.moveTo(S2);
     charlie.moveTo(S3);
-    
-    //    Serial.print("Current Position :");
-    //    Serial.print("   ");
-    //    Serial.print(alpha.currentPosition());
-    //    Serial.print("   ");
-    //    Serial.print(beta.currentPosition());
-    //    Serial.print("   ");
-    //    Serial.println(charlie.currentPosition());
-    //    Serial.print("about to run to :");
-    //    Serial.print("   ");
-    //    Serial.print(S1);
-    //    Serial.print("   ");
-    //    Serial.print(S2);
-    //    Serial.print("   ");
-    // Serial.println(S3);
+
+    //        Serial.print("Current Position :");
+    //        Serial.print("   ");
+    //        Serial.print(alpha.currentPosition());
+    //        Serial.print("   ");
+    //        Serial.print(beta.currentPosition());
+    //        Serial.print("   ");
+    //        Serial.println(charlie.currentPosition());
+    //        Serial.print("about to run to :");
+    //        Serial.print("   ");
+    //        Serial.print(S1);
+    //        Serial.print("   ");
+    //        Serial.print(S2);
+    //        Serial.print("   ");
+    //     Serial.println(S3);
+    //     delay(1000);
   }//if within limits
   else
   {

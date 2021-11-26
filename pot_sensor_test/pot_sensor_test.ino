@@ -16,8 +16,9 @@ void loop() {
   unsigned long int b = 0;
   unsigned long int c = 0;
   while ((currentMillis - previousMillis) < interval) {
+   a = analogRead(A5) + a;
     b = analogRead(A6) + b;
-    c = analogRead(A5) + c;
+    c = analogRead(A7) + c;
 
     n = n + 1;
     currentMillis = millis();
@@ -29,11 +30,11 @@ void loop() {
 //  Serial.print("   number of samples= ");
 //  Serial.print(n);
   Serial.print("      A= ");
-  Serial.print(b);
+  Serial.print(a);
   Serial.print("      B= ");
-  Serial.print(c);
+  Serial.print(b);
   Serial.print("      C= ");
-  Serial.println(a);
+  Serial.println(c);
   delay(10);
 
 }
