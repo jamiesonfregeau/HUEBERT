@@ -13,7 +13,7 @@ class ArduinoPy:
     transfer serial data between the two
     """
 
-    def __init__(self, port="COM4", baudrate=9600, timeout=1):
+    def __init__(self, port="COM3", baudrate=9600, timeout=1):
         self.port = port
         self.baudrate = baudrate
         self.timeout = timeout
