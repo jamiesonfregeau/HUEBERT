@@ -45,14 +45,14 @@ class ArduinoPy:
                 - Bool: True if data is formatted correctly
         """
 
-        # Check length
-        if len(control_data) != 11:
-            return False
+#         # Check length
+#         if len(control_data) != 11:
+#             return False
 
-        # Check for initial positional control character
-        # i.e. control data should begin with 'p' to flag it is positional
-        if not control_data[0].decode().isalpha():
-            return False
+#         # Check for initial positional control character
+#         # i.e. control data should begin with 'p' to flag it is positional
+#         if not control_data[0].decode().isalpha():
+#             return False
 
         # All checks passed
         return True
