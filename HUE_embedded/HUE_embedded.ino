@@ -193,13 +193,13 @@ void loop()
       S3 = Serial.readStringUntil('c').toInt();
       Serial.readStringUntil('\n');
 
-//      Serial.print("Just Read :");
-//      Serial.print("   ");
-//      Serial.print(S1);
-//      Serial.print("   ");
-//      Serial.print(S2);
-//      Serial.print("   ");
-//      Serial.println(S3);
+      Serial.print("Just Read :");
+      Serial.print("   ");
+      Serial.print(S1);
+      Serial.print("   ");
+      Serial.print(S2);
+      Serial.print("   ");
+      Serial.println(S3);
       howcopy = true;
 
     } // if (p)
@@ -211,26 +211,26 @@ void loop()
     //if the positional data was valid and converted to step value successfully set targets for steppers.
 
     //  Serial.println("Setting destination...");
-    //delay(1000);
+    // (1000);
     alpha.moveTo(S1);
     beta.moveTo(S2);
     charlie.moveTo(S3);
     //
-    //    Serial.print("Current Position :");
-    //    Serial.print("   ");
-    //    Serial.print(alpha.currentPosition());
-    //    Serial.print("   ");
-    //    Serial.print(beta.currentPosition());
-    //    Serial.print("   ");
-    //    Serial.println(charlie.currentPosition());
-    //    Serial.print("about to run to :");
-    //    Serial.print("   ");
-    //    Serial.print(S1);
-    //    Serial.print("   ");
-    //    Serial.print(S2);
-    //    Serial.print("   ");
-    //    Serial.println(S3);
-    //    delay(1000);
+        Serial.print("Current Position :");
+        Serial.print("   ");
+        Serial.print(alpha.currentPosition());
+        Serial.print("   ");
+        Serial.print(beta.currentPosition());
+        Serial.print("   ");
+        Serial.println(charlie.currentPosition());
+        Serial.print("about to run to :");
+        Serial.print("   ");
+        Serial.print(S1);
+        Serial.print("   ");
+        Serial.print(S2);
+        Serial.print("   ");
+        Serial.println(S3);
+
   }//if within limits
   else
   {
@@ -238,7 +238,7 @@ void loop()
   }
   //run motors and check for more input
 
-  int stepstaken = 0;
+
   while ((alpha.isRunning() || beta.isRunning() || charlie.isRunning()) )
   {
     //This will step motors 1 step each loop (if required by the moveTo property) until all motors have reached
@@ -250,9 +250,9 @@ void loop()
     alpha.run();
     beta.run();
     charlie.run();
-    stepstaken = stepstaken+1;
+   // stepstaken = stepstaken+1;
 
-    if(Serial.available() && stepstaken>2)
+    if(Serial.available())
     {
       break;
       }
