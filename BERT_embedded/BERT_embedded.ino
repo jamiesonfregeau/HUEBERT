@@ -98,6 +98,9 @@ void loop()
   if (digitalRead(2))
   {
     Serial.print(control_data);
+    delay(100);
+    while(digitalRead(2))
+    {}
   }
 }
 
