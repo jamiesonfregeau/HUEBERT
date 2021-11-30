@@ -32,12 +32,12 @@
 //Constants which define the range of motion of HUE and BERT.
 //These define the maximum analog voltage reading of the arduino.
 //THESE ARE FOR BERT
-const int rA_max = 1023;
+const int rA_max = 390;
 const int rA_min = 0;
-const int rB_max = 780;
+const int rB_max = 450;
 const int rB_min = 0;
-const int rC_max = 1023;
-const int rC_min = 0;
+const int rC_max = 500;
+const int rC_min = -500;
 
 // These define the maximum relative angles which the HUE frame can take (in radians)
 //  multiplied by the precision factor and stored as integers.
@@ -192,14 +192,14 @@ void loop()
       S2 = Serial.readStringUntil('b').toInt();
       S3 = Serial.readStringUntil('c').toInt();
       Serial.readStringUntil('\n');
-
-      Serial.print("Just Read :");
-      Serial.print("   ");
-      Serial.print(S1);
-      Serial.print("   ");
-      Serial.print(S2);
-      Serial.print("   ");
-      Serial.println(S3);
+//
+//      Serial.print("Just Read :");
+//      Serial.print("   ");
+//      Serial.print(S1);
+//      Serial.print("   ");
+//      Serial.print(S2);
+//      Serial.print("   ");
+//      Serial.println(S3);
       howcopy = true;
 
     } // if (p)
@@ -216,20 +216,20 @@ void loop()
     beta.moveTo(S2);
     charlie.moveTo(S3);
     //
-        Serial.print("Current Position :");
-        Serial.print("   ");
-        Serial.print(alpha.currentPosition());
-        Serial.print("   ");
-        Serial.print(beta.currentPosition());
-        Serial.print("   ");
-        Serial.println(charlie.currentPosition());
-        Serial.print("about to run to :");
-        Serial.print("   ");
-        Serial.print(S1);
-        Serial.print("   ");
-        Serial.print(S2);
-        Serial.print("   ");
-        Serial.println(S3);
+//        Serial.print("Current Position :");
+//        Serial.print("   ");
+//        Serial.print(alpha.currentPosition());
+//        Serial.print("   ");
+//        Serial.print(beta.currentPosition());
+//        Serial.print("   ");
+//        Serial.println(charlie.currentPosition());
+//        Serial.print("about to run to :");
+//        Serial.print("   ");
+//        Serial.print(S1);
+//        Serial.print("   ");
+//        Serial.print(S2);
+//        Serial.print("   ");
+//        Serial.println(S3);
 
   }//if within limits
   else
@@ -291,9 +291,9 @@ int homeHUE ()
 {
   // displaysensordata();
   // voltage2angle(analogRead(prA),analogRead(prB), 512);
-  alpha.setCurrentPosition(14);
-  beta.setCurrentPosition(3);
-  charlie.setCurrentPosition(512);
+  alpha.setCurrentPosition(0);
+  beta.setCurrentPosition(0);
+  charlie.setCurrentPosition(0);
   //    Serial.print("Current Position :");
   //        Serial.print("   ");
   //        Serial.print(alpha.currentPosition());
