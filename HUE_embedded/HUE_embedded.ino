@@ -193,13 +193,13 @@ void loop()
       S3 = Serial.readStringUntil('c').toInt();
       Serial.readStringUntil('\n');
 
-      Serial.print("Just Read :");
-      Serial.print("   ");
-      Serial.print(S1);
-      Serial.print("   ");
-      Serial.print(S2);
-      Serial.print("   ");
-      Serial.println(S3);
+//      Serial.print("Just Read :");
+//      Serial.print("   ");
+//      Serial.print(S1);
+//      Serial.print("   ");
+//      Serial.print(S2);
+//      Serial.print("   ");
+//      Serial.println(S3);
       howcopy = true;
 
     } // if (p)
@@ -238,17 +238,24 @@ void loop()
   }
   //run motors and check for more input
 
-  while ((alpha.isRunning() || beta.isRunning() || charlie.isRunning()) && !Serial.available())
+  int stepstaken = 0;
+  while ((alpha.isRunning() || beta.isRunning() || charlie.isRunning()) )
   {
     //This will step motors 1 step each loop (if required by the moveTo property) until all motors have reached
     // there destination.
     //If more Serial data come in, stop moving and read the data.
 
-    Serial.println("...stepping...");
+    //Serial.println("...stepping...");
     //runs motor a maximum of 1 step if required
     alpha.run();
     beta.run();
     charlie.run();
+    stepstaken = stepstaken+1;
+
+    if(Serial.available() && stepstaken>2)
+    {
+      break;
+      }
   }//while
 
 } //loop
