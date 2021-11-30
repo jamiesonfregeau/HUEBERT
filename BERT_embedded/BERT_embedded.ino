@@ -87,6 +87,7 @@ void loop()
   a = a / n;
   b = b / n;
   c = c / n;
+  
 
   // Reset time
   previousMillis = currentMillis;
@@ -97,10 +98,11 @@ void loop()
   // Send control data to control system if BERT's control button is pressed
   if (digitalRead(2))
   {
+//    Serial.print("\nb = ");
+//    Serial.print(b); 
     Serial.print(control_data);
-    delay(100);
-    while(digitalRead(2))
-    {}
+   // delay(100);
+   // while(digitalRead(2)){}
   }
 }
 
@@ -126,7 +128,7 @@ String voltage2steps(int a_in, int b_in, int c_in)
 
   //Convert the analog reading into the cooresponding arm angle in radians.
   double Q1 = Q1_min + a_in * (Q1_max - Q1_min) / (rA_max - rA_min); //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE*********s
-  double Q2 = PI + (Q2_min + b_in * (Q2_max - Q2_min) / (rB_max - rB_min)) - Q1 - offset3 - offset2; //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE***********
+  double Q2 = PI - (Q2_min + b_in * (Q2_max - Q2_min) / (rB_max - rB_min)) - Q1 - offset3 - offset2; //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE***********
   double Q3 = -PI + c_in * 2 * PI / 1024; //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE********
   //check if the desired value is valid
   //   Serial.print(" Q1= ");
@@ -182,6 +184,5 @@ String voltage2steps(int a_in, int b_in, int c_in)
 //  Serial.println();
 
   //Serial.println("conversion complete...");
-
   return steps;
 }//voltage2angle
