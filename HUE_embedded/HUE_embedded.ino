@@ -90,178 +90,16 @@ String s_input = "";
 //------------------------------------------------------------------------------------------------
 
 
-int voltage2angle(int a_in, int b_in, int c_in)
-{
-  // This function converts a analog voltage value (0 to 1024) to a step position.
-  // This function relies heavily on the defined dimensions of HUE and BERT.
-
-  // This fuction will confirm the validity of the sent values against the
-  //  defined limits of HUE's mechanical frame.
-
-  // This function generally take 2ms to run.
-  // Avoid the use of delays or print function to speed up compeletion.
-
-  //Currently, doubles and long types are used to complete the mathmatical conversion.
-  //For security and speed reason these should be changed in future version to ints.
-
-  //Serial.println("converting voltage value to step angle...");
-
-  //Convert the analog reading into the cooresponding arm angle in radians.
-  double Q1 = Q1_min + a_in * (Q1_max - Q1_min) / (rA_max - rA_min); //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE*********s
-  double Q2 = PI + (Q2_min + b_in * (Q2_max - Q2_min) / (rB_max - rB_min)) - Q1 - offset3 - offset2; //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE***********
-  double Q3 = -PI + c_in * 2 * PI / 1024; //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE********
-  //check if the desired value is valid
-  //   Serial.print(" Q1= ");
-  //      Serial.print(double(Q1));
-  //      Serial.print("      Q2= ");
-  //      Serial.println(double(Q2));;;
-
-  if (!checkangles(Q1, Q2, Q3))
-  {
-    //if angle outside limits, return false and report back to main
-    return 0;
-  }
-
-  //double now = micros(); //Uncomment this to start timing function
-
-
-  //Convert arm angle to motor shaft angle for stepper alpha
-  //See math model for more information on equation here
-  double q1_theta = PI   - Q1;
-  long O_L1m = sqrt(pow(L1m, 2) + pow(OL, 2) - 2 * L1m * OL * cos(q1_theta));
-  double q1_beta =  acos(( pow(OG, 2)  - pow(CL1, 2) + pow(O_L1m, 2)) / (2 * OG * O_L1m));
-  double q1_alpha = acos( (pow(OL, 2)  - pow(L1m, 2) + pow(O_L1m, 2)) / (2 * OL * O_L1m ));
-  double qS1 = (q1_beta + q1_alpha); //Angle of OG1 referenced to the line between center of planetary gear and pivot of L1
-
-  //Convert arm angle to motor shaft angle for stepper beta
-  //See math model for more information on equation here
-  double q2_theta = PI - Q2;
-  long R2 = sqrt(pow(L1, 2) + pow(L2e, 2) - 2 * long(L1) * long(L2e) * cos(q2_theta));
-  double q_L1_R2 = acos((-pow(L2e, 2)  + pow(R2, 2) + pow(L1, 2)) / (2 * R2 * L1));
-  double q2_gamma = PI - Q1 - q_L1_R2;
-  long  R1 =  sqrt(pow(OL, 2) + pow(R2, 2) - 2 * long(OL) * long(R2) * cos(q2_gamma));
-  double q2_beta =  acos((pow(OG, 2) - pow(CL2, 2) + pow(R1, 2)) / (2 * OG * R1));
-  double q2_alpha =  acos((pow(OL, 2) - pow(R2, 2) + pow(R1, 2)) / (2 * OL * R1));
-  double qS2 = q2_alpha + q2_beta;//Angle of OG2 referenced to the line between center of planetary gear and pivot of L1
-
-  //Convert motor arm angle to steps based on a precision of 200 steps per rotation
-  int tS1 = (3.442 - qS1) / (2 * PI) * 4 * 200; //CHANGE THIS IF alpha STEPPER CHANGES*******
-  int tS2 = (4.114 - qS2) / (2 * PI) * 4 * 200; //CHANGE THIS IF beta STEPPER CHANGES********
-  int tS3 = (Q3 * 13) * 200 / (2 * PI);// CHANGE THIS IF charlie STEPPER CHANGES*************[
-
-  if (checksteppers(tS1, tS2, tS3))
-  {
-    S1 = tS1;
-    S2 = tS2;
-    S3 = tS3;
-
-  }
-  else
-  {
-    Serial.println("INVALID POSITION!...");
-  }
-
-  // double then = micros();//Uncomment to end timing function
-
-  //  Serial.print("            time it took = ");
-  //  Serial.println(then - now);
-  //  Serial.println();
-
-  //Uncomment below to send converted values through serial connection.
-  Serial.print(" Q1= ");
-  Serial.print(double(Q1));
-  Serial.print("      Q2= ");
-  Serial.println(double(Q2));
-  Serial.print(" S1= ");
-  Serial.print(S1);
-  Serial.print("          S2 = ");
-  Serial.println(S2);
-  Serial.println();
-  Serial.println();
-
-  //Serial.println("conversion complete...");
-
-  return 1;
-}//voltage2angle
+bool checksteppers (int rA, int rB, int rC);
+bool checkangles(int Q1, int Q2, int Q3);
+void displaysensordata();
+int homeHUE ();
 
 
 //-----------------------------------------------------
 
 
-bool checksteppers (int rA, int rB, int rC)
-{
-  // This function checks the sensor on HUE connected to the arduino nano on defined pins.
 
-  // If the value of the parameters are outside defined limits,
-  //   a warning will be sent through the serial port and a false returned
-  // If the sensor value are within limits a value of true will be returned.
-
-  //Serial.print("checking analog sensors...");
-
-
-  if (  (rA < rA_max) && (rB < rB_max) && (rC < rC_max) && (rA >= rA_min) && (rB >= rB_min) && (rC >= rC_min))
-  {
-    //Serial.println("Sensors indicate HUE is ready to move...");
-    return true;
-  }
-  else
-  {
-    Serial.println("WARNING: HUE OUTSIDE MECHANICAL LIMITS....");
-    return false;
-  }
-}//checksensors
-
-//----------------------------
-
-
-bool checkangles(double Q1, double Q2, double Q3)
-{
-  //This function checks if the input angle is within the defined limits of HUE's range
-
-  //If the angle would be outside HUE's range a warning is sent through the serial port.
-  //If the angle is within limits a true value will be returned
-  if (  Q1 < Q1_max && Q2 < Q2_max && Q3 < Q3_max && Q1 > Q1_min && Q2 > Q2_min && Q3 > Q3_min)
-  {
-    return true;
-  }
-  else
-  {
-    Serial.println("WARNING: HUE CANNOT MOVE HERE....");
-    return false;
-  }
-}
-
-int homeHUE ()
-{
-  // displaysensordata();
-  // voltage2angle(analogRead(prA),analogRead(prB), 512);
-  alpha.setCurrentPosition(14);
-  beta.setCurrentPosition(3);
-  charlie.setCurrentPosition(512);
-  //    Serial.print("Current Position :");
-  //        Serial.print("   ");
-  //        Serial.print(alpha.currentPosition());
-  //        Serial.print("   ");
-  //        Serial.print(beta.currentPosition());
-  //        Serial.print("   ");
-  //        Serial.println(charlie.currentPosition());
-}
-
-//------------------------------------------
-
-void displaysensordata()
-{
-  //This function sends current sensor data through the serial port
-  int  rA = analogRead(prA);
-  int  rB = analogRead(prB);
-  int  rC = analogRead(prC);
-  Serial.print("      A= ");
-  Serial.print(rA);
-  Serial.print("      B= ");
-  Serial.print(rB);
-  Serial.print("      C= ");
-  Serial.println(rC);
-}
 
 
 //-------------------------------------------------------------------------------------------------------------------------
@@ -322,7 +160,7 @@ void setup()
   //home motors
   //Set motors to home position: Make sure HUE starts from this defined position
   homeHUE();
-  Serial.write("ready to receive instructions");
+  Serial.write("\nready to receive instructions\n");
 
   //-----------------------------
 } //setup
@@ -342,27 +180,33 @@ void loop()
   //read Serial Data if available in a string
   if (Serial.available())
   {
+
     //Serial.println("reading serial...");
-    s_input = Serial.readStringUntil('\n');
+    //s_input = Serial.readStringUntil('\n');
 
     //parse the input string if it has content
-    if (s_input.length() == 10)
+    //call functions and tasks here based on the first character in string
+    if (Serial.read() == 'p')
     {
-      //call functions and tasks here based on the first character in string
+      S1 = Serial.readStringUntil('a').toInt();
+      S2 = Serial.readStringUntil('b').toInt();
+      S3 = Serial.readStringUntil('c').toInt();
+      Serial.readStringUntil('\n');
 
-      if (s_input[0] == 'p') {
-        //p indicated positional data. Seperate into 3 digit analog values
-        int a_s = (s_input.substring(1, 4)).toInt();
-        int b_s = (s_input.substring(4, 7)).toInt();
-        int c_s = (s_input.substring(7, 10)).toInt();
-        //Convert the analog voltage into step value
-        howcopy = voltage2angle(a_s, b_s, c_s);//This updates S1, S2 and S3 if howcopy==1;
-      }//position
-    } // if (s_input)
+      Serial.print("Just Read :");
+      Serial.print("   ");
+      Serial.print(S1);
+      Serial.print("   ");
+      Serial.print(S2);
+      Serial.print("   ");
+      Serial.println(S3);
+      howcopy = true;
+
+    } // if (p)
   }   //if
 
 
-  if (howcopy) // ( checksensors() && howcopy)
+  if (checksteppers(S1, S2, S3) && howcopy)
   {
     //if the positional data was valid and converted to step value successfully set targets for steppers.
 
@@ -371,22 +215,22 @@ void loop()
     alpha.moveTo(S1);
     beta.moveTo(S2);
     charlie.moveTo(S3);
-
-    Serial.print("Current Position :");
-    Serial.print("   ");
-    Serial.print(alpha.currentPosition());
-    Serial.print("   ");
-    Serial.print(beta.currentPosition());
-    Serial.print("   ");
-    Serial.println(charlie.currentPosition());
-    //        Serial.print("about to run to :");
-    //        Serial.print("   ");
-    //        Serial.print(S1);
-    //        Serial.print("   ");
-    //        Serial.print(S2);
-    //        Serial.print("   ");
-    //     Serial.println(S3);
-    //     delay(1000);
+    //
+    //    Serial.print("Current Position :");
+    //    Serial.print("   ");
+    //    Serial.print(alpha.currentPosition());
+    //    Serial.print("   ");
+    //    Serial.print(beta.currentPosition());
+    //    Serial.print("   ");
+    //    Serial.println(charlie.currentPosition());
+    //    Serial.print("about to run to :");
+    //    Serial.print("   ");
+    //    Serial.print(S1);
+    //    Serial.print("   ");
+    //    Serial.print(S2);
+    //    Serial.print("   ");
+    //    Serial.println(S3);
+    //    delay(1000);
   }//if within limits
   else
   {
@@ -400,7 +244,7 @@ void loop()
     // there destination.
     //If more Serial data come in, stop moving and read the data.
 
-    // Serial.println("...stepping...");
+    Serial.println("...stepping...");
     //runs motor a maximum of 1 step if required
     alpha.run();
     beta.run();
@@ -408,3 +252,48 @@ void loop()
   }//while
 
 } //loop
+
+
+bool checksteppers (int rA, int rB, int rC)
+{
+  // This function checks the sensor on HUE connected to the arduino nano on defined pins.
+
+  // If the value of the parameters are outside defined limits,
+  //   a warning will be sent through the serial port and a false returned
+  // If the sensor value are within limits a value of true will be returned.
+
+  //Serial.print("checking analog sensors...");
+
+
+  if (  (rA < rA_max) && (rB < rB_max) && (rC < rC_max) && (rA >= rA_min) && (rB >= rB_min) && (rC >= rC_min))
+  {
+    // Serial.println("Sensors indicate HUE is ready to move...");
+    return true;
+  }
+  else
+  {
+    Serial.println("WARNING: HUE OUTSIDE MECHANICAL LIMITS....");
+    return false;
+  }
+}//checksteppers
+
+//----------------------------
+
+
+int homeHUE ()
+{
+  // displaysensordata();
+  // voltage2angle(analogRead(prA),analogRead(prB), 512);
+  alpha.setCurrentPosition(14);
+  beta.setCurrentPosition(3);
+  charlie.setCurrentPosition(512);
+  //    Serial.print("Current Position :");
+  //        Serial.print("   ");
+  //        Serial.print(alpha.currentPosition());
+  //        Serial.print("   ");
+  //        Serial.print(beta.currentPosition());
+  //        Serial.print("   ");
+  //        Serial.println(charlie.currentPosition());
+}
+
+//------------------------------------------
