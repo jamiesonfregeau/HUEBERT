@@ -111,10 +111,10 @@ int voltage2angle(int a_in, int b_in, int c_in)
   double Q2 = PI + (Q2_min + b_in * (Q2_max - Q2_min) / (rB_max - rB_min)) - Q1 - offset3 - offset2; //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE***********
   double Q3 = -PI + c_in * 2 * PI / 1024; //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE********
   //check if the desired value is valid
-//   Serial.print(" Q1= ");
-//      Serial.print(double(Q1));
-//      Serial.print("      Q2= ");
-//      Serial.println(double(Q2));;;
+  //   Serial.print(" Q1= ");
+  //      Serial.print(double(Q1));
+  //      Serial.print("      Q2= ");
+  //      Serial.println(double(Q2));;;
 
   if (!checkangles(Q1, Q2, Q3))
   {
@@ -145,10 +145,21 @@ int voltage2angle(int a_in, int b_in, int c_in)
   double qS2 = q2_alpha + q2_beta;//Angle of OG2 referenced to the line between center of planetary gear and pivot of L1
 
   //Convert motor arm angle to steps based on a precision of 200 steps per rotation
-  S1 = (3.442 - qS1) / (2 * PI) * 4 * 200; //CHANGE THIS IF alpha STEPPER CHANGES*******
-  S2 = (4.114 - qS2) / (2 * PI) * 4 * 200; //CHANGE THIS IF beta STEPPER CHANGES********
-  S3 = (Q3 * 13) * 200 / (2 * PI);// CHANGE THIS IF charlie STEPPER CHANGES*************[
+  int tS1 = (3.442 - qS1) / (2 * PI) * 4 * 200; //CHANGE THIS IF alpha STEPPER CHANGES*******
+  int tS2 = (4.114 - qS2) / (2 * PI) * 4 * 200; //CHANGE THIS IF beta STEPPER CHANGES********
+  int tS3 = (Q3 * 13) * 200 / (2 * PI);// CHANGE THIS IF charlie STEPPER CHANGES*************[
 
+  if (checksteppers(tS1, tS2, tS3))
+  {
+    S1 = tS1;
+    S2 = tS2;
+    S3 = tS3;
+
+  }
+  else
+  {
+    Serial.println("INVALID POSITION!...");
+  }
 
   // double then = micros();//Uncomment to end timing function
 
@@ -157,16 +168,16 @@ int voltage2angle(int a_in, int b_in, int c_in)
   //  Serial.println();
 
   //Uncomment below to send converted values through serial connection.
-  //    Serial.print(" Q1= ");
-  //    Serial.print(double(Q1));
-  //    Serial.print("      Q2= ");
-  //    Serial.println(double(Q2));
-  //    Serial.print(" qS1= ");
-  //    Serial.print(qS1);
-  //    Serial.print("          qS2 = ");
-  //    Serial.println(qS2);
-  //  Serial.println();
-  //  Serial.println();
+  Serial.print(" Q1= ");
+  Serial.print(double(Q1));
+  Serial.print("      Q2= ");
+  Serial.println(double(Q2));
+  Serial.print(" S1= ");
+  Serial.print(S1);
+  Serial.print("          S2 = ");
+  Serial.println(S2);
+  Serial.println();
+  Serial.println();
 
   //Serial.println("conversion complete...");
 
@@ -177,7 +188,7 @@ int voltage2angle(int a_in, int b_in, int c_in)
 //-----------------------------------------------------
 
 
-bool checksensors ()
+bool checksteppers (int rA, int rB, int rC)
 {
   // This function checks the sensor on HUE connected to the arduino nano on defined pins.
 
@@ -186,9 +197,7 @@ bool checksensors ()
   // If the sensor value are within limits a value of true will be returned.
 
   //Serial.print("checking analog sensors...");
-  int rA = analogRead(prA);
-  int rB = analogRead(prB);
-  int rC = analogRead(prC);
+
 
   if (  (rA < rA_max) && (rB < rB_max) && (rC < rC_max) && (rA >= rA_min) && (rB >= rB_min) && (rC >= rC_min))
   {
@@ -363,13 +372,13 @@ void loop()
     beta.moveTo(S2);
     charlie.moveTo(S3);
 
-    //        Serial.print("Current Position :");
-    //        Serial.print("   ");
-    //        Serial.print(alpha.currentPosition());
-    //        Serial.print("   ");
-    //        Serial.print(beta.currentPosition());
-    //        Serial.print("   ");
-    //        Serial.println(charlie.currentPosition());
+    Serial.print("Current Position :");
+    Serial.print("   ");
+    Serial.print(alpha.currentPosition());
+    Serial.print("   ");
+    Serial.print(beta.currentPosition());
+    Serial.print("   ");
+    Serial.println(charlie.currentPosition());
     //        Serial.print("about to run to :");
     //        Serial.print("   ");
     //        Serial.print(S1);
