@@ -14,8 +14,8 @@ char end_character = '\n';
 //  multiplied by the precision factor and stored as integers.
 const double Q1_max = 2.41 ;
 const double Q1_min = 0.33 ;
-const double Q2_max = 3.4 ;
-const double Q2_min = 0.83 ;
+const double Q2_max = 2.79;
+const double Q2_min = 0.52 ;
 const double Q3_max = PI ;
 const double Q3_min = -PI ;
 const double offset1 = 0.33272;
@@ -24,7 +24,7 @@ const double offset3 = 0.88631;
 
 //These define the maximum analog voltage reading of the arduino.
 //THESE ARE FOR BERT
-const int rA_max = 1023;
+const int rA_max = 940;
 const int rA_min = 0;
 const int rB_max = 780;
 const int rB_min = 0;
@@ -71,35 +71,41 @@ void loop()
   unsigned long int a = 0;
   unsigned long int b = 0;
   unsigned long int c = 0;
+  //
+  //  // Average control values over period of time of interval
+  //  while ((currentMillis - previousMillis) < interval)
+  //  {
+  //    a = analogRead(A7) + a;
+  //    b = analogRead(A6) + b;
+  //    c = analogRead(A5) + c;
+  //
+  //    n = n + 1;
+  //    currentMillis = millis();
+  //  }
+  //
+  //  // Set control values to average over the time interval
+  //  a = a / n;
+  //  b = b / n;
+  //  //c = c / n;
+  //  c = 0;
 
-  // Average control values over period of time of interval
-  while ((currentMillis - previousMillis) < interval)
-  {
-    a = analogRead(A7) + a;
-    b = analogRead(A6) + b;
-    c = analogRead(A5) + c;
 
-    n = n + 1;
-    currentMillis = millis();
-  }
-
-  // Set control values to average over the time interval
-  a = a / n;
-  b = b / n;
-  //c = c / n;
-  c = 0;
+  a = analogRead(A7) + a;
+  b = analogRead(A6) + b;
+  c = analogRead(A5) + c;
 
   // Reset time
   previousMillis = currentMillis;
 //  Serial.print("\na = ");
-//  Serial.print(a);
+//  Serial.println(a);
 //  Serial.print("\nb = ");
-//  Serial.print(b);
-//  Serial.print("\nc = ");
-//  Serial.print(c);
-//  delay(1000);
+//  Serial.println(b);
+  //  //  Serial.print("\nc = ");
+  //  //  Serial.print(c);
+  //  delay(1000);
 
   //Convert Data and Set control data value
+
   String control_data = voltage2steps(a, b, c);
 
   // Send control data to control system if BERT's control button is pressed
@@ -124,16 +130,16 @@ bool checkangles(double Q1, double Q2, double Q3)
 
   //If the angle would be outside HUE's range a warning is sent through the serial port.
   //If the angle is within limits a true value will be returned
-  if (  Q1 < Q1_max && Q2 < Q2_max && Q1 > Q1_min && Q2 > Q2_min)
+  if (  Q1 < Q1_max && Q2 < Q2_max && Q1 >= Q1_min && Q2 >= Q2_min)
   {
     return true;
   }
   else
   {
-//    Serial.println(Q1);
-//    Serial.println(Q2);
-//    Serial.println(Q3);
-//    Serial.println("WARNING: HUE CANNOT MOVE HERE....");
+    //    Serial.println(Q1);
+    //    Serial.println(Q2);
+    //    Serial.println(Q3);
+    Serial.println("WARNING: HUE CANNOT MOVE HERE....");
     return false;
   }
 }
@@ -152,9 +158,21 @@ String voltage2steps(int a_in, int b_in, int c_in)
   //Serial.println("converting voltage value to step angle...");
 
   //Convert the analog reading into the cooresponding arm angle in radians.//-=--------------------------------------------------------------------------MEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+  //  double HQ1 = a_in * (Q1_max - Q1_min) / (rA_max - rA_min);
   double Q1 = Q1_min + a_in * (Q1_max - Q1_min) / (rA_max - rA_min); //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE*********s
-  double Q2 =  (Q2_min + b_in * (Q2_max - Q2_min) / (rB_max - rB_min)) + PI - Q1 - offset3 - offset2; //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE***********
+  double Q2 =  (Q2_min + b_in * (Q2_max - Q2_min) / (rB_max - rB_min)) + PI - Q1  - offset2;// - offset3; //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE***********
   double Q3 = -PI + c_in * 2 * PI / 1024; //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE********
+
+  //  double dQ2 = Q2*180/PI;
+  //  double dQ1 = Q1 *180/PI;
+//  Serial.print("Q Angles: ");
+//  Serial.print(" Q1 =  ");
+//  Serial.print(Q1);
+//  Serial.print("  Q2 =  ");
+//  Serial.println(Q2);
+  //Serial.println(Q3);
+  //delay(500);
+
   if (checkangles(Q1, Q2, Q3)) {
 
     //double now = micros(); //Uncomment this to start timing function
@@ -178,13 +196,17 @@ String voltage2steps(int a_in, int b_in, int c_in)
     double q2_beta =  acos((pow(OG, 2) - pow(CL2, 2) + pow(R1, 2)) / (2 * OG * R1));
     double q2_alpha =  acos((pow(OL, 2) - pow(R2, 2) + pow(R1, 2)) / (2 * OL * R1));
     double qS2 = q2_alpha + q2_beta;//Angle of OG2 referenced to the line between center of planetary gear and pivot of L1
-
+    //    Serial.print("  qS2 =  ");
+    //    Serial.println(qS2);
     //Convert motor arm angle to steps based on a precision of 200 steps per rotation
 
     int tS1 = (3.442 - qS1) / (2 * PI) * 4 * 200; //CHANGE THIS IF alpha STEPPER CHANGES*******
     int tS2 = (4.114 - qS2) / (2 * PI) * 4 * 200; //CHANGE THIS IF beta STEPPER CHANGES********
     int tS3 = (Q3 * 13) * 200 / ( 3 * PI / 4); // CHANGE THIS IF charlie STEPPER CHANGES*************[
     //UNCOMMENTME
+
+    //        Serial.print("  tS2 =  ");
+    //  Serial.println(tS2);
 
     //String steps = pos_char + String(tS1) + 'a' + String(tS2) + 'b' + String(tS3) + 'c' + end_character;
     String steps = pos_char + String(tS1) + 'a' + String(tS2) + 'b' + 0 + 'c' + end_character;
