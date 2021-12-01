@@ -172,6 +172,7 @@ void setup()
 
 void loop()
 {
+  Serial.println("Standby");
   bool howcopy = 0;// a check variable used for return values of functions
 
   //displaysensordata();
@@ -192,21 +193,28 @@ void loop()
       S2 = Serial.readStringUntil('b').toInt();
       S3 = Serial.readStringUntil('c').toInt();
       Serial.readStringUntil('\n');
-//
-//      Serial.print("Just Read :");
-//      Serial.print("   ");
-//      Serial.print(S1);
-//      Serial.print("   ");
-//      Serial.print(S2);
-//      Serial.print("   ");
-//      Serial.println(S3);
+      Serial.print("loc");
+      Serial.print(alpha.currentPosition());
+      Serial.print("a");
+      Serial.print(beta.currentPosition());
+      Serial.print("b");
+      Serial.print(charlie.currentPosition());
+      Serial.println('c');
+      //
+      //      Serial.print("Just Read :");
+      //      Serial.print("   ");
+      //      Serial.print(S1);
+      //      Serial.print("   ");
+      //      Serial.print(S2);
+      //      Serial.print("   ");
+      //      Serial.println(S3);
       howcopy = true;
 
     } // if (p)
   }   //if
 
 
-  if (checksteppers(S1, S2, S3) && howcopy)
+  if (howcopy)
   {
     //if the positional data was valid and converted to step value successfully set targets for steppers.
 
@@ -216,20 +224,20 @@ void loop()
     beta.moveTo(S2);
     charlie.moveTo(S3);
     //
-//        Serial.print("Current Position :");
-//        Serial.print("   ");
-//        Serial.print(alpha.currentPosition());
-//        Serial.print("   ");
-//        Serial.print(beta.currentPosition());
-//        Serial.print("   ");
-//        Serial.println(charlie.currentPosition());
-//        Serial.print("about to run to :");
-//        Serial.print("   ");
-//        Serial.print(S1);
-//        Serial.print("   ");
-//        Serial.print(S2);
-//        Serial.print("   ");
-//        Serial.println(S3);
+    //        Serial.print("Current Position :");
+    //        Serial.print("   ");
+    //        Serial.print(alpha.currentPosition());
+    //        Serial.print("   ");
+    //        Serial.print(beta.currentPosition());
+    //        Serial.print("   ");
+    //        Serial.println(charlie.currentPosition());
+    //        Serial.print("about to run to :");
+    //        Serial.print("   ");
+    //        Serial.print(S1);
+    //        Serial.print("   ");
+    //        Serial.print(S2);
+    //        Serial.print("   ");
+    //        Serial.println(S3);
 
   }//if within limits
   else
@@ -244,18 +252,22 @@ void loop()
     //This will step motors 1 step each loop (if required by the moveTo property) until all motors have reached
     // there destination.
     //If more Serial data come in, stop moving and read the data.
-
-    //Serial.println("...stepping...");
     //runs motor a maximum of 1 step if required
-    alpha.run();
-    beta.run();
-    charlie.run();
-   // stepstaken = stepstaken+1;
-
-    if(Serial.available())
+    int motordiff = alpha.currentPosition() - beta.currentPosition();
+    if (motordiff > 190) {
+      beta.run();
+      charlie.run();
+    } else
     {
-      break;
-      }
+      alpha.run();
+      beta.run();
+      charlie.run();
+    }
+
+    //    if(Serial.available())
+    //    {
+    //      break;
+    //      }
   }//while
 
 } //loop
