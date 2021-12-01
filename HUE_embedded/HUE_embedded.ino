@@ -32,19 +32,19 @@
 //Constants which define the range of motion of HUE and BERT.
 //These define the maximum analog voltage reading of the arduino.
 //THESE ARE FOR BERT
-const int rA_max = 390;
-const int rA_min = 0;
-const int rB_max = 450;
-const int rB_min = 0;
-const int rC_max = 500;
-const int rC_min = -500;
+const int S1_max = 390;
+const int S1_min = 0;
+const int S2_max = 450;
+const int S2_min = 0;
+const int S3_max = 1000;
+const int S3_min = -1000;
 
 // These define the maximum relative angles which the HUE frame can take (in radians)
 //  multiplied by the precision factor and stored as integers.
 const double Q1_max = 2.41 ;
 const double Q1_min = 0.33 ;
-const double Q2_max = PI ;
-const double Q2_min = 0.83 ;
+const double Q2_max = 2.79;
+const double Q2_min = 0.52 ;
 const double Q3_max = PI ;
 const double Q3_min = -PI ;
 const double offset1 = 0.33272;
@@ -66,11 +66,11 @@ const  int OX = 0.1055 * p; //m
 
 // Varialbes used to set the maximum speed and acceleration rates of HUE's stepper motors.
 // Initial value set here
-int alpha_speed = 100;
-int beta_speed = 100;
-int charlie_speed = 100;
-int alpha_acc = 300;
-int beta_acc = 300;
+int alpha_speed = 150;
+int beta_speed = 150;
+int charlie_speed = 300;
+int alpha_acc = 200;
+int beta_acc = 200;
 int charlie_acc = 500;
 
 // Variable used to store the step targets of the HUE's stepper motors (alpha->1, beta->2, charlie->3)
@@ -86,16 +86,22 @@ AccelStepper charlie(1, MOTOR_Z_STEP_PIN, MOTOR_Z_DIR_PIN);
 // The string used to collect recieved serial input.
 String s_input = "";
 
+//check values
+bool harderror = false;
+
 //functions
 //------------------------------------------------------------------------------------------------
 
 
-bool checksteppers (int rA, int rB, int rC);
+bool checksteppers (int rS1, int rS2, int rS3);
 bool checkangles(int Q1, int Q2, int Q3);
 void displaysensordata();
 int homeHUE ();
+void retreat2();
+int maxdiff();
+int printmotorposition();
 
-
+int printmotortarget();
 //-----------------------------------------------------
 
 
@@ -159,8 +165,10 @@ void setup()
 
   //home motors
   //Set motors to home position: Make sure HUE starts from this defined position
+  Serial.println("HUE--initiated ");
   homeHUE();
-  Serial.write("\nready to receive instructions\n");
+
+  Serial.println("HUE--standing by; ");
 
   //-----------------------------
 } //setup
@@ -172,108 +180,126 @@ void setup()
 
 void loop()
 {
-  Serial.println("Standby");
-  bool howcopy = 0;// a check variable used for return values of functions
+  if (harderror == false) {
+    //Serial.println("Standby");
+    bool howcopy = 0;// a check variable used for return values of functions
 
-  //displaysensordata();
+    //displaysensordata();
 
 
-  //read Serial Data if available in a string
-  if (Serial.available())
-  {
-
-    //Serial.println("reading serial...");
-    //s_input = Serial.readStringUntil('\n');
-
-    //parse the input string if it has content
-    //call functions and tasks here based on the first character in string
-    if (Serial.read() == 'p')
+    //read Serial Data if available in a string
+    if (Serial.available())
     {
-      S1 = Serial.readStringUntil('a').toInt();
-      S2 = Serial.readStringUntil('b').toInt();
-      S3 = Serial.readStringUntil('c').toInt();
-      Serial.readStringUntil('\n');
-      Serial.print("loc");
-      Serial.print(alpha.currentPosition());
-      Serial.print("a");
-      Serial.print(beta.currentPosition());
-      Serial.print("b");
-      Serial.print(charlie.currentPosition());
-      Serial.println('c');
+
+      //Serial.println("reading serial...");
+      //s_input = Serial.readStringUntil('\n');
+
+      //parse the input string if it has content
+      //call functions and tasks here based on the first character in string
+      char type = Serial.read();
+      if (type == 'p')
+      {
+        S1 = Serial.readStringUntil('a').toInt();
+        S2 = Serial.readStringUntil('b').toInt();
+        S3 = Serial.readStringUntil('c').toInt();
+        Serial.readStringUntil('\n');
+        //      Serial.print("loc");
+        //      Serial.print(alpha.currentPosition());
+        //      Serial.print("a");
+        //      Serial.print(beta.currentPosition());
+        //      Serial.print("b");
+        //      Serial.print(charlie.currentPosition());
+        //      Serial.println('c');
+        //
+        //      Serial.print("Just Read :");
+        //      Serial.print("   ");
+        //      Serial.print(S1);
+        //      Serial.print("   ");
+        //      Serial.print(S2);
+        //      Serial.print("   ");
+        //      Serial.println(S3);
+        howcopy = true;
+      } // if (p)
+
+      if (type == 'k') {
+        printmotorposition();
+      }
+      Serial.flush();
+    }   //if
+
+
+
+
+    if (howcopy && checksteppers(S1, S2, S3))
+    {
+      //if the positional data was valid and converted to step value successfully set targets for steppers.
+
+      Serial.println("HUE--setting destination...");
+      // (1000);
+      alpha.moveTo(S1);
+      beta.moveTo(S2);
+      charlie.moveTo(S3);
       //
-      //      Serial.print("Just Read :");
-      //      Serial.print("   ");
-      //      Serial.print(S1);
-      //      Serial.print("   ");
-      //      Serial.print(S2);
-      //      Serial.print("   ");
-      //      Serial.println(S3);
-      howcopy = true;
+      //        Serial.print("Current Position :");
+      //        Serial.print("   ");
+      //        Serial.print(alpha.currentPosition());
+      //        Serial.print("   ");
+      //        Serial.print(beta.currentPosition());
+      //        Serial.print("   ");
+      //        Serial.println(charlie.currentPosition());
+      //        Serial.print("about to run to :");
+      //        Serial.print("   ");
+      //        Serial.print(S1);
+      //        Serial.print("   ");
+      //        Serial.print(S2);
+      //        Serial.print("   ");
+      //        Serial.println(S3);
 
-    } // if (p)
-  }   //if
+      //run motors and check for more input
+      int count = 0;
+      Serial.println("HUE--running actuators");
+      while ((alpha.isRunning() || beta.isRunning() || charlie.isRunning()) )
+      {
+        //This will step motors 1 step each loop (if required by the moveTo property) until all motors have reached
+        // there destination.
+        //If more Serial data come in, stop moving and read the data.
+        //runs motor a maximum of 1 step if required
 
+        // Serial.println("HUE --running...");
+        int motordiff = alpha.currentPosition() - beta.currentPosition();
+        if (motordiff > maxdiff()) {
+          Serial.println(maxdiff());
+          //delay(100);
+          beta.run();
+          charlie.run();
+          //Serial.println("Difference between S1 and S2 is to large");
+          count = count + 1;
+          if (beta.isRunning() == false) {
+            Serial.println("HUE--failed to reach target to to motor position difference");
+            retreat2();
+            break;
+          }
+        }
+        else
+        {
+          alpha.run();
+          beta.run();
+          charlie.run();
+        }
 
-  if (howcopy)
-  {
-    //if the positional data was valid and converted to step value successfully set targets for steppers.
+      }//while
 
-    //  Serial.println("Setting destination...");
-    // (1000);
-    alpha.moveTo(S1);
-    beta.moveTo(S2);
-    charlie.moveTo(S3);
-    //
-    //        Serial.print("Current Position :");
-    //        Serial.print("   ");
-    //        Serial.print(alpha.currentPosition());
-    //        Serial.print("   ");
-    //        Serial.print(beta.currentPosition());
-    //        Serial.print("   ");
-    //        Serial.println(charlie.currentPosition());
-    //        Serial.print("about to run to :");
-    //        Serial.print("   ");
-    //        Serial.print(S1);
-    //        Serial.print("   ");
-    //        Serial.print(S2);
-    //        Serial.print("   ");
-    //        Serial.println(S3);
+      Serial.println("HUE--standing by");
 
-  }//if within limits
-  else
-  {
-    //Serial.println("INVALID DESTINATION");
+    }//if within limits
+
+  } else {
+    Serial.println("HUE--harderror, please reset me");
   }
-  //run motors and check for more input
-
-
-  while ((alpha.isRunning() || beta.isRunning() || charlie.isRunning()) )
-  {
-    //This will step motors 1 step each loop (if required by the moveTo property) until all motors have reached
-    // there destination.
-    //If more Serial data come in, stop moving and read the data.
-    //runs motor a maximum of 1 step if required
-    int motordiff = alpha.currentPosition() - beta.currentPosition();
-    if (motordiff > 190) {
-      beta.run();
-      charlie.run();
-    } else
-    {
-      alpha.run();
-      beta.run();
-      charlie.run();
-    }
-
-    //    if(Serial.available())
-    //    {
-    //      break;
-    //      }
-  }//while
-
 } //loop
 
 
-bool checksteppers (int rA, int rB, int rC)
+bool checksteppers (int rS1, int rS2, int rS3)
 {
   // This function checks the sensor on HUE connected to the arduino nano on defined pins.
 
@@ -284,14 +310,14 @@ bool checksteppers (int rA, int rB, int rC)
   //Serial.print("checking analog sensors...");
 
 
-  if (  (rA < rA_max) && (rB < rB_max) && (rC < rC_max) && (rA >= rA_min) && (rB >= rB_min) && (rC >= rC_min))
+  if (  (rS1 <= S1_max) && (rS2 <= S2_max) && (rS3 <= S3_max) && (rS1 >= S1_min) && (rS2 >= S2_min) && (rS3 >= S3_min))
   {
     // Serial.println("Sensors indicate HUE is ready to move...");
     return true;
   }
   else
   {
-    Serial.println("WARNING: HUE OUTSIDE MECHANICAL LIMITS....");
+    Serial.println("WARNING: HUE unable to comply....");
     return false;
   }
 }//checksteppers
@@ -306,13 +332,76 @@ int homeHUE ()
   alpha.setCurrentPosition(0);
   beta.setCurrentPosition(0);
   charlie.setCurrentPosition(0);
-  //    Serial.print("Current Position :");
-  //        Serial.print("   ");
-  //        Serial.print(alpha.currentPosition());
-  //        Serial.print("   ");
-  //        Serial.print(beta.currentPosition());
-  //        Serial.print("   ");
-  //        Serial.println(charlie.currentPosition());
+  printmotorposition();
 }
 
+int printmotorposition() {
+
+  Serial.print("HUE--at position:  ");
+  Serial.print("p");
+  Serial.print(alpha.currentPosition());
+  Serial.print("a");
+  Serial.print(beta.currentPosition());
+  Serial.print("b");
+  Serial.print(charlie.currentPosition());
+  Serial.println("c");
+}
+
+int printmotortarget() {
+
+  Serial.print("HUE--at position:  ");
+  Serial.print("p");
+  Serial.print(alpha.targetPosition());
+  Serial.print("a");
+  Serial.print(beta.targetPosition());
+  Serial.print("b");
+  Serial.print(charlie.targetPosition());
+  Serial.println("c");
+}
+
+
+void retreat2()
+{
+
+  Serial.println("HUE--trying to retreat");
+  //int ret = 50;
+  alpha.moveTo(alpha.currentPosition());
+  beta.moveTo(beta.currentPosition());
+  //  int r1 = alpha.currentPosition() - ret;
+  //  int r2 = beta.currentPosition() + ret;
+  //  while (!checksteppers(r1, r2, 0))
+  //  {
+  //    ret = ret - 1;
+  //    r1 = alpha.targetPosition() - ret;
+  //    r2 = beta.targetPosition() + ret;
+  //    if (ret < 1)
+  //    {
+  //      harderror == true;
+  //      Serial.println("HUE-- I can't retreat...");
+  //      break;
+  //    }
+  //
+  //  }
+  //  alpha.moveTo(r1);
+  //  beta.moveTo(r2);
+  //
+  //  beta.runToPosition();
+  //  alpha.runToPosition();
+
+
+  printmotorposition();
+
+}
+
+int maxdiff()
+{
+  if (beta.currentPosition() < 300)
+  {
+    return 200 - 90 / 140 * alpha.currentPosition();
+  } else
+  {
+    return 100;
+  }
+
+}
 //------------------------------------------
