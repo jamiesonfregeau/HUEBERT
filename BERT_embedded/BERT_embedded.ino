@@ -45,6 +45,10 @@ const int L2e = 0.0800 * p; //m
 const  int OL = 0.109337002 * p; //m
 const  int OX = 0.1055 * p; //m
 
+
+//check variable
+bool stuck = false;
+
 //-- function list
 String voltage2step(int a_in, int b_in, int c_in);
 bool checkangles(double Q1, double Q2, double Q3);
@@ -86,22 +90,20 @@ void loop()
   //  // Set control values to average over the time interval
   //  a = a / n;
   //  b = b / n;
-  //  //c = c / n;
-  //  c = 0;
+  //  c = c / n;
 
 
-  a = analogRead(A7) + a;
-  b = analogRead(A6) + b;
-  c = analogRead(A5) + c;
-
+  a = analogRead(A7);
+  b = analogRead(A6);
+  c = analogRead(A5);
   // Reset time
-  previousMillis = currentMillis;
-//  Serial.print("\na = ");
-//  Serial.println(a);
-//  Serial.print("\nb = ");
-//  Serial.println(b);
-  //  //  Serial.print("\nc = ");
-  //  //  Serial.print(c);
+  // previousMillis = currentMillis;
+  //  Serial.print("\na = ");
+  //  Serial.println(a);
+  //  Serial.print("\nb = ");
+  //  Serial.println(b);
+  //  Serial.print("\nc = ");
+  //  Serial.print(c);
   //  delay(1000);
 
   //Convert Data and Set control data value
@@ -111,10 +113,9 @@ void loop()
   // Send control data to control system if BERT's control button is pressed
   if (digitalRead(2) && control_data != "INVALID")
   {
-
-
     Serial.print(control_data);
     delay(1);
+    stuck = false;
     while (digitalRead(2)) {}
   }
 }
@@ -130,17 +131,21 @@ bool checkangles(double Q1, double Q2, double Q3)
 
   //If the angle would be outside HUE's range a warning is sent through the serial port.
   //If the angle is within limits a true value will be returned
-  if (  Q1 < Q1_max && Q2 < Q2_max && Q1 >= Q1_min && Q2 >= Q2_min)
+  if (  Q1 <= Q1_max && Q2 <= Q2_max && Q1 >= Q1_min && Q2 >= Q2_min)
   {
     return true;
   }
   else
   {
-    //    Serial.println(Q1);
-    //    Serial.println(Q2);
+    //    Serial.print("Angles:  ");
+    //    Serial.print(Q1);
+    //    Serial.print(Q2);
     //    Serial.println(Q3);
-    Serial.println("WARNING: HUE CANNOT MOVE HERE....");
-    return false;
+    if (stuck == false) {
+      Serial.println("BERT--HUE cannot move here....");
+      stuck = true;
+      return false;
+    }
   }
 }
 
@@ -161,20 +166,19 @@ String voltage2steps(int a_in, int b_in, int c_in)
   //  double HQ1 = a_in * (Q1_max - Q1_min) / (rA_max - rA_min);
   double Q1 = Q1_min + a_in * (Q1_max - Q1_min) / (rA_max - rA_min); //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE*********s
   double Q2 =  (Q2_min + b_in * (Q2_max - Q2_min) / (rB_max - rB_min)) + PI - Q1  - offset2;// - offset3; //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE***********
-  double Q3 = -PI + c_in * 2 * PI / 1024; //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE********
+  double Q3 = -PI + (c_in)  * 2 * PI / 1023; //CHANGE THIS IF DIMENSION OF POT VALUES CHANGE********
 
   //  double dQ2 = Q2*180/PI;
   //  double dQ1 = Q1 *180/PI;
-//  Serial.print("Q Angles: ");
-//  Serial.print(" Q1 =  ");
-//  Serial.print(Q1);
-//  Serial.print("  Q2 =  ");
-//  Serial.println(Q2);
+  //  Serial.print("Q Angles: ");
+  //  Serial.print(" Q1 =  ");
+  //  Serial.print(Q1);
+  //  Serial.print("  Q2 =  ");
+  //  Serial.println(Q2);
   //Serial.println(Q3);
   //delay(500);
 
   if (checkangles(Q1, Q2, Q3)) {
-
     //double now = micros(); //Uncomment this to start timing function
 
 
@@ -202,14 +206,14 @@ String voltage2steps(int a_in, int b_in, int c_in)
 
     int tS1 = (3.442 - qS1) / (2 * PI) * 4 * 200; //CHANGE THIS IF alpha STEPPER CHANGES*******
     int tS2 = (4.114 - qS2) / (2 * PI) * 4 * 200; //CHANGE THIS IF beta STEPPER CHANGES********
-    int tS3 = (Q3 * 13) * 200 / ( 3 * PI / 4); // CHANGE THIS IF charlie STEPPER CHANGES*************[
+    int tS3 = (Q3 * 13) * 200 / ( 2 * PI); // CHANGE THIS IF charlie STEPPER CHANGES*************[
     //UNCOMMENTME
 
     //        Serial.print("  tS2 =  ");
     //  Serial.println(tS2);
 
-    //String steps = pos_char + String(tS1) + 'a' + String(tS2) + 'b' + String(tS3) + 'c' + end_character;
-    String steps = pos_char + String(tS1) + 'a' + String(tS2) + 'b' + 0 + 'c' + end_character;
+    String steps = pos_char + String(tS1) + 'a' + String(tS2) + 'b' + String(tS3) + 'c' + end_character;
+    //String steps = pos_char + String(tS1) + 'a' + String(tS2) + 'b' + 0 + 'c' + end_character;
     // double then = micros();//Uncomment to end timing function
     return steps;
   } else
