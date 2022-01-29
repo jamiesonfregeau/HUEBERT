@@ -76,26 +76,26 @@ void loop()
   unsigned long int b = 0;
   unsigned long int c = 0;
   //
-  //  // Average control values over period of time of interval
-  //  while ((currentMillis - previousMillis) < interval)
-  //  {
-  //    a = analogRead(A7) + a;
-  //    b = analogRead(A6) + b;
-  //    c = analogRead(A5) + c;
-  //
-  //    n = n + 1;
-  //    currentMillis = millis();
-  //  }
-  //
-  //  // Set control values to average over the time interval
-  //  a = a / n;
-  //  b = b / n;
-  //  c = c / n;
+    // Average control values over period of time of interval
+    while ((currentMillis - previousMillis) < interval)
+    {
+      a = analogRead(A7) + a;
+      b = analogRead(A6) + b;
+      c = analogRead(A5) + c;
+  
+      n = n + 1;
+      currentMillis = millis();
+    }
+  
+    // Set control values to average over the time interval
+    a = a / n;
+    b = b / n;
+    c = c / n;
 
 
-  a = analogRead(A7);
-  b = analogRead(A6);
-  c = analogRead(A5);
+//  a = analogRead(A7);
+//  b = analogRead(A6);
+//  c = analogRead(A5);
   // Reset time
   // previousMillis = currentMillis;
   //  Serial.print("\na = ");

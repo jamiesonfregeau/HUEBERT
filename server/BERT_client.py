@@ -16,7 +16,7 @@ import socket
 class BertClient:
     """Connect, Disconnect and communicate with the raspberry pi server"""
 
-    def __init__(self, host="192.168.1.147", port=1234, retry_attempts=10):
+    def __init__(self, host="192.168.168.79", port=8000, retry_attempts=10):
         self.host = host
         self.port = port
         self.retry_attempts = retry_attempts
